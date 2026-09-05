@@ -1,0 +1,66 @@
+{
+  "summary": {
+    "scenario_count": 5,
+    "avg_disp_improvement_pct": -28.328733112047974,
+    "avg_ori_improvement_pct": 52.454341223105516,
+    "scenarios_better_than_ins": 2,
+    "status": "mixed_generalization"
+  },
+  "scenarios": [
+    {
+      "scenario": "motorway",
+      "disp_mae_idnn": 42.62084825944328,
+      "disp_mae_ins": 19.600735689801304,
+      "ori_mae_idnn": 0.060163119991729685,
+      "ori_mae_ins": 0.6932022016811134,
+      "drift_idnn_pct": 17.182840039282418,
+      "drift_ins_pct": 12.029612652894839,
+      "disp_improvement_pct": -117.44514560042687,
+      "ori_improvement_pct": 91.3209854432335
+    },
+    {
+      "scenario": "roundabout",
+      "disp_mae_idnn": 33.692462215033395,
+      "disp_mae_ins": 46.069803948946806,
+      "ori_mae_idnn": 1.987225293270629,
+      "ori_mae_ins": 1.9121352900884239,
+      "drift_idnn_pct": 75.74076145618793,
+      "drift_ins_pct": 83.07355236940803,
+      "disp_improvement_pct": 26.866495346126534,
+      "ori_improvement_pct": -3.927023551703427
+    },
+    {
+      "scenario": "quick_accel",
+      "disp_mae_idnn": 32.17617535292345,
+      "disp_mae_ins": 18.871327229467745,
+      "ori_mae_idnn": 0.16122775144897222,
+      "ori_mae_ins": 0.5167851311770357,
+      "drift_idnn_pct": 18.4957254835561,
+      "drift_ins_pct": 15.922022154447331,
+      "disp_improvement_pct": -70.50298032392797,
+      "ori_improvement_pct": 68.80178207105958
+    },
+    {
+      "scenario": "hard_brake",
+      "disp_mae_idnn": 25.71666085636862,
+      "disp_mae_ins": 24.85852179021839,
+      "ori_mae_idnn": 0.17528245106404625,
+      "ori_mae_ins": 0.9001957857585522,
+      "drift_idnn_pct": 23.929939278126394,
+      "drift_ins_pct": 35.85457653171404,
+      "disp_improvement_pct": -3.4520920969962896,
+      "ori_improvement_pct": 80.5284079489059
+    },
+    {
+      "scenario": "sharp_turns",
+      "disp_mae_idnn": 29.966074088250952,
+      "disp_mae_ins": 38.86149174424333,
+      "ori_mae_idnn": 1.0295992771230023,
+      "ori_mae_ins": 1.3828951703541772,
+      "drift_idnn_pct": 110.42455654112142,
+      "drift_ins_pct": 106.77198552599864,
+      "disp_improvement_pct": 22.890057114984742,
+      "ori_improvement_pct": 25.547554204032064
+    }
+  ]
+}

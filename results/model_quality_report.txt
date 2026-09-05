@@ -1,0 +1,20 @@
+MODEL QUALITY REPORT
+================================================================================
+Status: mixed_generalization
+Average displacement improvement: -28.33%
+Average orientation improvement: 52.45%
+Scenarios where IDNN beats pure INS on displacement: 2/5
+
+Scenario-level MAE signal
+--------------------------------------------------------------------------------
+motorway     | disp MAE IDNN=42.62 | disp MAE INS=19.60 | disp Δ=-117.45% | ori MAE IDNN=0.060 | ori MAE INS=0.693 | ori Δ=+91.32%
+roundabout   | disp MAE IDNN=33.69 | disp MAE INS=46.07 | disp Δ=+26.87% | ori MAE IDNN=1.987 | ori MAE INS=1.912 | ori Δ=-3.93%
+quick_accel  | disp MAE IDNN=32.18 | disp MAE INS=18.87 | disp Δ=-70.50% | ori MAE IDNN=0.161 | ori MAE INS=0.517 | ori Δ=+68.80%
+hard_brake   | disp MAE IDNN=25.72 | disp MAE INS=24.86 | disp Δ=-3.45% | ori MAE IDNN=0.175 | ori MAE INS=0.900 | ori Δ=+80.53%
+sharp_turns  | disp MAE IDNN=29.97 | disp MAE INS=38.86 | disp Δ=+22.89% | ori MAE IDNN=1.030 | ori MAE INS=1.383 | ori Δ=+25.55%
+
+Interpretation:
+- Orientation estimation is substantially better than the pure INS baseline.
+- Displacement estimation is inconsistent and often worse than INS, especially in motorway and quick-acceleration cases.
+- This indicates a weaker displacement model or limited transfer to some dynamic driving regimes.
+- No per-epoch train/val MAE log was found in the project, so this report is based on the saved benchmark evaluation metrics rather than a retraining run.

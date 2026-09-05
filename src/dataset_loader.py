@@ -16,10 +16,74 @@ Key specifications:
 import os
 import glob
 import pickle
+import math
 import numpy as np
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
-from vincenty import vincenty
+
+try:
+    from vincenty import vincenty
+except ImportError:  # pragma: no cover - fallback for environments without the package
+    def vincenty(p1, p2):
+        """Return geodesic distance in meters between (lat, lon) tuples using the Vincenty method.
+
+        This is a small local implementation used when the external `vincenty` package is not installed.
+        """
+        lat1, lon1 = map(math.radians, p1)
+        lat2, lon2 = map(math.radians, p2)
+
+        a = 6378137.0
+        b = 6356752.314245
+        f = 1 / 298.257223563
+
+        L = lon2 - lon1
+        U1 = math.atan((1 - f) * math.tan(lat1))
+        U2 = math.atan((1 - f) * math.tan(lat2))
+        sinU1 = math.sin(U1)
+        cosU1 = math.cos(U1)
+        sinU2 = math.sin(U2)
+        cosU2 = math.cos(U2)
+
+        lambda_ = L
+        for _ in range(200):
+            sinLambda = math.sin(lambda_)
+            cosLambda = math.cos(lambda_)
+            sinSigma = math.sqrt(
+                (cosU2 * sinLambda) ** 2
+                + (cosU1 * sinU2 - sinU1 * cosU2 * cosLambda) ** 2
+            )
+            if sinSigma == 0:
+                return 0.0
+
+            cosSigma = sinU1 * sinU2 + cosU1 * cosU2 * cosLambda
+            sigma = math.atan2(sinSigma, cosSigma)
+            sinAlpha = (cosU1 * cosU2 * sinLambda) / sinSigma
+            cosSqAlpha = 1.0 - sinAlpha ** 2
+            if cosSqAlpha != 0:
+                cos2SigmaM = cosSigma - (2 * sinU1 * sinU2 / cosSqAlpha)
+            else:
+                cos2SigmaM = 0.0
+
+            C = (f / 16.0) * cosSqAlpha * (4 + f * (4 - 3 * cosSqAlpha))
+            lambda_prev = lambda_
+            lambda_ = L + (1 - C) * f * sinAlpha * (
+                sigma + C * sinSigma * (cos2SigmaM + C * cosSigma * (-1 + 2 * cos2SigmaM ** 2))
+            )
+            if abs(lambda_ - lambda_prev) < 1e-12:
+                break
+        else:
+            pass
+
+        uSq = cosSqAlpha * (a ** 2 - b ** 2) / (b ** 2)
+        A = 1 + (uSq / 16384.0) * (4096 + uSq * (-768 + uSq * (320 - 175 * uSq)))
+        B = (uSq / 1024.0) * (256 + uSq * (-128 + uSq * (74 - 47 * uSq)))
+        deltaSigma = B * sinSigma * (
+            cos2SigmaM + (B / 4.0) * (
+                cosSigma * (-1 + 2 * cos2SigmaM ** 2)
+                - (B / 6.0) * cos2SigmaM * (-3 + 4 * sinAlpha ** 2) * (-3 + 4 * cos2SigmaM ** 2)
+            )
+        )
+        return b * A * (sigma - deltaSigma)
 
 DATASET_BASE_DIR = r"C:\Users\tiwar\OneDrive\Desktop\DATASETS\IO-VNBD\IO-VNBD\Synchronised V abd S datasets\Categorised IOVNB Dataset"
 CACHE_DIR = r"c:\Users\tiwar\OneDrive\Desktop\PROJECTS\SIH 26\data\preprocessed"

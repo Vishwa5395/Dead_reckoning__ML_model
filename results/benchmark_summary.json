@@ -1,0 +1,67 @@
+{
+  "motorway": {
+    "n_sequences": 7,
+    "disp_crse_idnn": 42.62084825944328,
+    "disp_crse_ins": 19.600735689801304,
+    "disp_improvement_pct": -117.44514560042687,
+    "ori_crse_idnn": 0.060163119991729685,
+    "ori_crse_ins": 0.6932022016811134,
+    "ori_improvement_pct": 91.3209854432335,
+    "final_drift_m_idnn": 43.1711500353335,
+    "final_drift_m_ins": 29.987913760458017,
+    "drift_pct_idnn": 17.182840039282418,
+    "drift_pct_ins": 12.029612652894839
+  },
+  "roundabout": {
+    "n_sequences": 3,
+    "disp_crse_idnn": 33.692462215033395,
+    "disp_crse_ins": 46.069803948946806,
+    "disp_improvement_pct": 26.866495346126534,
+    "ori_crse_idnn": 1.987225293270629,
+    "ori_crse_ins": 1.9121352900884239,
+    "ori_improvement_pct": -3.927023551703427,
+    "final_drift_m_idnn": 74.2116858363634,
+    "final_drift_m_ins": 81.93031934795307,
+    "drift_pct_idnn": 75.74076145618793,
+    "drift_pct_ins": 83.07355236940803
+  },
+  "quick_accel": {
+    "n_sequences": 4,
+    "disp_crse_idnn": 32.17617535292345,
+    "disp_crse_ins": 18.871327229467745,
+    "disp_improvement_pct": -70.50298032392797,
+    "ori_crse_idnn": 0.16122775144897222,
+    "ori_crse_ins": 0.5167851311770357,
+    "ori_improvement_pct": 68.80178207105958,
+    "final_drift_m_idnn": 35.04171196581921,
+    "final_drift_m_ins": 29.110674604626034,
+    "drift_pct_idnn": 18.4957254835561,
+    "drift_pct_ins": 15.922022154447331
+  },
+  "hard_brake": {
+    "n_sequences": 12,
+    "disp_crse_idnn": 25.71666085636862,
+    "disp_crse_ins": 24.85852179021839,
+    "disp_improvement_pct": -3.4520920969962896,
+    "ori_crse_idnn": 0.17528245106404625,
+    "ori_crse_ins": 0.9001957857585522,
+    "ori_improvement_pct": 80.5284079489059,
+    "final_drift_m_idnn": 25.98184649219684,
+    "final_drift_m_ins": 43.9685064784199,
+    "drift_pct_idnn": 23.929939278126394,
+    "drift_pct_ins": 35.85457653171404
+  },
+  "sharp_turns": {
+    "n_sequences": 39,
+    "disp_crse_idnn": 29.966074088250952,
+    "disp_crse_ins": 38.86149174424333,
+    "disp_improvement_pct": 22.890057114984742,
+    "ori_crse_idnn": 1.0295992771230023,
+    "ori_crse_ins": 1.3828951703541772,
+    "ori_improvement_pct": 25.547554204032064,
+    "final_drift_m_idnn": 47.875667125464844,
+    "final_drift_m_ins": 48.8538302865727,
+    "drift_pct_idnn": 110.42455654112142,
+    "drift_pct_ins": 106.77198552599864
+  }
+}
