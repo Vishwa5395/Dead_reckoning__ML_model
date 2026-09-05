@@ -1,0 +1,32 @@
+{
+  "clip_bounds": {
+    "a_fwd": [
+      -8.0,
+      8.0
+    ],
+    "w_yaw": [
+      -1.2,
+      1.2
+    ],
+    "a_lat": [
+      -8.0,
+      8.0
+    ],
+    "disp": [
+      0.0,
+      45.0
+    ]
+  },
+  "train_trips": 50,
+  "val_trips": 9,
+  "test_trips": 13,
+  "train_samples": 72614,
+  "val_samples": 10676,
+  "test_samples": 23033,
+  "features": [
+    "a_fwd",
+    "w_yaw",
+    "a_lat",
+    "v_prev"
+  ]
+}

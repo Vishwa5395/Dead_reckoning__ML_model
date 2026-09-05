@@ -1,0 +1,37 @@
+{
+  "channels": [
+    "a_fwd",
+    "w_yaw",
+    "a_lat_measured",
+    "v_prev"
+  ],
+  "window_size": 10,
+  "noise_std": 0.5,
+  "clip": {
+    "accel": [
+      -8.0,
+      8.0
+    ],
+    "disp": [
+      0.0,
+      45.0
+    ],
+    "gyro": [
+      -1.0,
+      1.0
+    ],
+    "yaw": [
+      -1.2,
+      1.2
+    ]
+  },
+  "sensor_source": "smartphone_IMU (S- files)",
+  "train_journeys": 50,
+  "val_journeys": 9,
+  "test_journeys": 13,
+  "train_windows": 72614,
+  "val_windows": 10676,
+  "test_windows": 23033,
+  "zupt_pos_rate_train": 0.06618558615446091,
+  "split_method": "trip-level before windowing, seed=42"
+}

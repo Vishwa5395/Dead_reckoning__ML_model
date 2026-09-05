@@ -1,0 +1,24 @@
+{
+  "clip": {
+    "disp_accel": [
+      -8.0,
+      8.0
+    ],
+    "disp_disp": [
+      0.0,
+      45.0
+    ],
+    "ori_gyro": [
+      -1.0,
+      1.0
+    ],
+    "ori_yaw": [
+      -1.2,
+      1.2
+    ]
+  },
+  "train_samples": 72614,
+  "val_samples": 10676,
+  "test_samples": 23033,
+  "note": "Raw values reconstructed from original MinMaxScalers, clipped to physical road-vehicle limits, and re-scaled with fresh MinMaxScalers fitted on the 70% train split only."
+}

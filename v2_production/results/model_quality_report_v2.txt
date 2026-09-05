@@ -1,0 +1,41 @@
+MODEL QUALITY REPORT — v2 (PRODUCTION) vs PREVIOUS MODEL
+==========================================================================================
+Status: production_ready
+Scenarios evaluated: 5
+
+SUMMARY METRICS
+------------------------------------------------------------------------------------------
+Avg displacement improvement vs INS:   OLD = -28.33%  ->  v2 = +32.90%
+Avg orientation improvement vs INS:   v2 = +52.73%
+Avg displacement MAE change (v2 vs old): -37.00%  (negative = v2 better)
+Avg orientation MAE change (v2 vs old): -1.69%  (negative = v2 better)
+Scenarios where v2 displacement MAE improved: 5/5
+Scenarios where v2 orientation MAE improved:  3/5
+
+TRAINING (held-out 20% test) — v2
+------------------------------------------------------------------------------------------
+Displacement: best val MAE=0.01132  test MAE=0.00955  epochs=37
+  train MAE min=0.02405  val MAE min=0.01132
+Orientation:  best val MAE=0.02378  test MAE=0.02241  epochs=39
+  train MAE min=0.02202  val MAE min=0.02378
+
+SCENARIO-BY-SCENARIO COMPARISON (CRSE = 10-s cumulative error)
+------------------------------------------------------------------------------------------
+Scenario     |  old Disp |  new Disp |       Δ% |  Disp INS |  old Ori |  new Ori |   Ori Δ% |  Ori INS | old Drift% | new Drift%
+------------------------------------------------------------------------------------------
+motorway     |     42.62 |      8.26 |    -80.6 |     19.60 |    0.060 |    0.056 |     -7.7 |    0.693 |       17.2 |        4.2
+roundabout   |     33.69 |     22.88 |    -32.1 |     46.07 |    1.987 |    1.983 |     -0.2 |    1.912 |       75.7 |       62.5
+quick_accel  |     32.18 |     15.16 |    -52.9 |     18.87 |    0.161 |    0.156 |     -3.3 |    0.517 |       18.5 |       13.6
+hard_brake   |     25.72 |     23.52 |     -8.5 |     24.86 |    0.175 |    0.180 |     +2.7 |    0.900 |       23.9 |       18.7
+sharp_turns  |     29.97 |     26.72 |    -10.8 |     38.86 |    1.030 |    1.030 |     +0.1 |    1.383 |      110.4 |       81.1
+
+ROOT CAUSE FIX APPLIED
+------------------------------------------------------------------------------------------
+The previous model's displacement target was scaled by a MinMaxScaler fit to a
+catastrophic GPS outlier (max 1843.7 m/s for a single 1-second step, vs a 99.99th
+percentile of ~36 m/s). This collapsed all real driving data to ~0.006 on [0,1], so
+the model learned a near-constant '~12 m/s' predictor. v2 reconstructs raw values,
+clips outliers to physical road-vehicle limits ([0,45] m/s, accel [-8,8] m/s^2,
+gyro [-1,1] rad/s), and re-fits scalers on the train split only. v2 also upgrades the
+network (3 hidden layers 64-64-32, BatchNorm, GELU) and training (AdamW, LR scheduling,
+early stopping, gradient clipping, seeds).

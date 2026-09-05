@@ -1,0 +1,9 @@
+{
+  "n_params": 21667,
+  "best_epoch": 51,
+  "best_val_loss": 0.01370549526265157,
+  "test_disp_mae": 0.008234041039314535,
+  "test_ori_mae": 0.020610388132950498,
+  "total_time_s": 622.9328274726868,
+  "epochs": 60
+}

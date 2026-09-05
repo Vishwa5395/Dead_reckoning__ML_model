@@ -1,0 +1,50 @@
+MODEL QUALITY REPORT — v3 (PINO-DR) vs v2 (IDNN) vs v1 (BASELINE)
+==============================================================================================================
+Status: v3_physics_informed_production_ready
+Scenarios evaluated: 5
+Average Displacement Improvement vs Raw INS: +41.33%
+Average Orientation Improvement vs Raw INS:  +56.21%
+
+ARCHITECTURE & TRAINING SUMMARY (v3 PINO-DR)
+--------------------------------------------------------------------------------------------------------------
+Model Parameters:        21,667 (budget <= 25,000)
+Epochs Trained:          60 (no early stopping)
+Best Checkpoint Epoch:   51 (val_loss = 0.013705)
+Test Split MAE:          Disp = 0.008234 m,  Ori = 0.020610 rad
+Training Duration:       622.9 s (~10.4 min)
+Trip Split Hygiene:      50 train journeys / 9 val / 13 test (zero journey leakage)
+
+SCENARIO-BY-SCENARIO 10-s DRIFT COMPARISON (METERS)
+--------------------------------------------------------------------------------------------------------------
+Scenario     |    Raw INS |  v1 Baseline |    v2 IDNN |  v3 PINO-DR |  v3 vs INS |   v3 vs v2
+--------------------------------------------------------------------------------------------------------------
+motorway     |     29.99m |       43.17m |     10.53m |       7.13m |     +76.2% |     +32.3%
+roundabout   |     81.93m |       74.21m |     63.45m |      75.31m |      +8.1% |     -18.7%
+quick_accel  |     29.11m |       35.04m |     24.57m |      21.11m |     +27.5% |     +14.1%
+hard_brake   |     43.97m |       25.98m |     23.33m |      17.15m |     +61.0% |     +26.5%
+sharp_turns  |     48.85m |       47.88m |     39.88m |      39.26m |     +19.6% |      +1.5%
+
+SCENARIO-BY-SCENARIO CRSE (CUMULATIVE RESIDUAL SQUARED ERROR) COMPARISON
+--------------------------------------------------------------------------------------------------------------
+Scenario     |  Disp INS |   v1 Disp |   v2 Disp |   v3 Disp |  Ori INS |   v1 Ori |   v2 Ori |   v3 Ori
+--------------------------------------------------------------------------------------------------------------
+motorway     |     19.60 |     42.62 |      8.26 |      6.69 |    0.693 |    0.060 |    0.056 |    0.052
+roundabout   |     46.07 |     33.69 |     22.88 |     24.10 |    1.912 |    1.987 |    1.983 |    1.606
+quick_accel  |     18.87 |     32.18 |     15.16 |     16.44 |    0.517 |    0.161 |    0.156 |    0.153
+hard_brake   |     24.86 |     25.72 |     23.52 |     15.69 |    0.900 |    0.175 |    0.180 |    0.186
+sharp_turns  |     38.86 |     29.97 |     26.72 |     22.02 |    1.383 |    1.030 |    1.030 |    1.068
+
+KEY ARCHITECTURAL & METHODOLOGICAL UPGRADES ACROSS VERSIONS
+--------------------------------------------------------------------------------------------------------------
+1. v1 (Baseline):
+   - Single-step feedforward IDNN trained on unclipped data with GPS outlier (1843.7 m/s).
+   - Learned constant ~12 m/s predictor; open-loop evaluation only.
+2. v2 (Production Baseline):
+   - Outlier clipping ([0, 45] m/s, [-8, 8] m/s^2), 3-layer MLP with BatchNorm + GELU.
+   - Window-level random train/val split (had overlap between consecutive sliding windows).
+3. v3 (PINO-DR - Physics-Informed Neural Operator):
+   - Trip-Level Split: Complete journeys held out for val/test (zero temporal data leakage).
+   - Multi-Task Physics Heads: Jointly predicts forward displacement, heading delta, AND ZUPT stationary probability.
+   - Kinematic Loss Penalty: Physics loss penalizes centripetal inconsistency (|a_lat - v*w_yaw|).
+   - Closed-Loop Autoregressive Evaluation: State feedback (v_prev feeding next window) with ZUPT hysteresis.
+   - Deployment Exports: PyTorch .pth, ONNX (opset 18), TorchScript .pt, and production engine .pkl.

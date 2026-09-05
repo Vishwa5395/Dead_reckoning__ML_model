@@ -1,0 +1,18 @@
+{
+  "displacement": {
+    "model_type": "displacement",
+    "best_val_mae": 0.011321284733894122,
+    "test_mae": 0.009554037557972997,
+    "best_epoch": 22,
+    "total_time_s": 48.57098579406738,
+    "n_params": 7937
+  },
+  "orientation": {
+    "model_type": "orientation",
+    "best_val_mae": 0.023780974333721318,
+    "test_mae": 0.02240665797243643,
+    "best_epoch": 24,
+    "total_time_s": 51.28185510635376,
+    "n_params": 7297
+  }
+}
