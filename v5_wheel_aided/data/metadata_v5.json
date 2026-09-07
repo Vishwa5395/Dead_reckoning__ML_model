@@ -1,0 +1,59 @@
+{
+  "channels": [
+    "a_fwd",
+    "w_yaw",
+    "a_lat_measured",
+    "v_prev",
+    "w_yaw_accel",
+    "centripetal_residual",
+    "v_wheel"
+  ],
+  "num_channels": 7,
+  "window_size": 10,
+  "noise_std": 0.5,
+  "r_tire": 0.277209,
+  "track_width": 1.4785,
+  "clip": {
+    "accel": [
+      -8.0,
+      8.0
+    ],
+    "disp": [
+      0.0,
+      45.0
+    ],
+    "gyro": [
+      -1.0,
+      1.0
+    ],
+    "yaw": [
+      -1.2,
+      1.2
+    ],
+    "yaw_accel": [
+      -2.0,
+      2.0
+    ],
+    "centripetal_res": [
+      -8.0,
+      8.0
+    ],
+    "v_wheel": [
+      0.0,
+      45.0
+    ]
+  },
+  "sensor_source": "smartphone_IMU (S- files) + CAN-bus rear wheel speed (V- files)",
+  "train_journeys": 50,
+  "val_journeys": 9,
+  "test_journeys": 13,
+  "train_windows": 72614,
+  "val_windows": 10676,
+  "test_windows": 23033,
+  "turn_stats": {
+    "std_w_yaw": 0.07232913191486101,
+    "std_w_accel": 0.17010635589468795,
+    "tau_turn": 1.1676633350329118
+  },
+  "split_method": "frozen trip-level before windowing, seed=42"
+}
