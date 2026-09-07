@@ -1,0 +1,53 @@
+{
+  "channels": [
+    "a_fwd",
+    "w_yaw",
+    "a_lat_measured",
+    "v_prev",
+    "w_yaw_accel",
+    "centripetal_residual"
+  ],
+  "num_channels": 6,
+  "window_size": 10,
+  "noise_std": 0.5,
+  "clip": {
+    "accel": [
+      -8.0,
+      8.0
+    ],
+    "disp": [
+      0.0,
+      45.0
+    ],
+    "gyro": [
+      -1.0,
+      1.0
+    ],
+    "yaw": [
+      -1.2,
+      1.2
+    ],
+    "yaw_accel": [
+      -2.0,
+      2.0
+    ],
+    "centripetal_res": [
+      -8.0,
+      8.0
+    ]
+  },
+  "sensor_source": "smartphone_IMU (S- files)",
+  "train_journeys": 50,
+  "val_journeys": 9,
+  "test_journeys": 13,
+  "train_windows": 72614,
+  "val_windows": 10676,
+  "test_windows": 23033,
+  "zupt_pos_rate_train": 0.06618558615446091,
+  "turn_stats": {
+    "std_w_yaw": 0.07232913191486101,
+    "std_w_accel": 0.15678941286441092,
+    "tau_turn": 1.149476705942826
+  },
+  "split_method": "frozen trip-level before windowing, seed=42"
+}
