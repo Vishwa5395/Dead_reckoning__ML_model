@@ -1,0 +1,37 @@
+{
+  "version": "v7_sept_model",
+  "description": "Dual-specialist regime partitioning at 60th percentile of |yaw_rate|",
+  "tau_60_rad_s": 0.03285219892859459,
+  "tau_60_deg_s": 1.8822923463326748,
+  "s1_straight_specialist": {
+    "initialization": "v3_pino_dr/checkpoints/best_model.pth",
+    "in_channels": 4,
+    "channels": [
+      "a_fwd",
+      "w_yaw",
+      "a_lat",
+      "v_prev"
+    ],
+    "train_samples": 43568,
+    "train_pct": 59.99944914203873,
+    "val_held_out_samples": 5817,
+    "val_pct": 54.486699138254025
+  },
+  "s2_turning_specialist": {
+    "initialization": "v4_turn_focused/checkpoints/best_model_ablation_D_attn_coupling.pth",
+    "in_channels": 6,
+    "channels": [
+      "a_fwd",
+      "w_yaw",
+      "a_lat",
+      "v_prev",
+      "w_yaw_accel",
+      "centripetal_residual"
+    ],
+    "train_samples": 29046,
+    "train_pct": 40.00055085796127,
+    "val_held_out_samples": 4859,
+    "val_pct": 45.51330086174597
+  },
+  "test_samples": 23033
+}

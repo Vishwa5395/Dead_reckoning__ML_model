@@ -1,0 +1,46 @@
+{
+  "motorway": {
+    "drift_10s_m": 7.126451116650822,
+    "target_2x_m": 3.56,
+    "best_repo_m": 7.12,
+    "improvement_pct": -0.09060557093850637,
+    "num_sequences": 7
+  },
+  "roundabout": {
+    "drift_10s_m": 21.22662715981135,
+    "target_2x_m": 27.68,
+    "best_repo_m": 55.36,
+    "improvement_pct": 61.65710411883788,
+    "num_sequences": 3
+  },
+  "quick_accel": {
+    "drift_10s_m": 9.40901010962525,
+    "target_2x_m": 9.25,
+    "best_repo_m": 18.5,
+    "improvement_pct": 49.14048589391757,
+    "num_sequences": 4
+  },
+  "hard_brake": {
+    "drift_10s_m": 13.797961964794505,
+    "target_2x_m": 7.37,
+    "best_repo_m": 14.74,
+    "improvement_pct": 6.391031446441625,
+    "num_sequences": 12
+  },
+  "sharp_turns": {
+    "drift_10s_m": 27.65370522622884,
+    "target_2x_m": 17.71,
+    "best_repo_m": 35.42,
+    "improvement_pct": 21.926298062595034,
+    "num_sequences": 39
+  },
+  "overall_breakdown": {
+    "drift_10s_m": 21.465709648229996,
+    "best_repo_m": 29.55,
+    "target_2x_m": 14.77,
+    "improvement_pct": 27.35800457451778,
+    "drift_1s_m": 0.9859285868481223,
+    "drift_3s_m": 4.156268627204723,
+    "drift_5s_m": 8.431372911474591
+  }
+}
