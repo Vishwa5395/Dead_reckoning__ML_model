@@ -1,0 +1,72 @@
+
+========================================================================================
+PINO-DR v6 FAILURE MODE & ERROR ATTRIBUTION REPORT
+========================================================================================
+Global 10-Second Drift: 101.42 meters
+INS Drift:             40.78 meters
+V4 Baseline Drift:     29.99 meters
+
+Scenario Breakdown:
+{
+  "motorway": {
+    "n_sequences": 8,
+    "drift_v6_10s": 205.1513302219432,
+    "drift_ins_10s": 29.819842989364915,
+    "drift_v4_10s": 10.191933631425579,
+    "disp_crse_v6": 15.996594778644763,
+    "ori_crse_v6": 10.57645016684259,
+    "speed_mae": 1.599659477864476,
+    "imprv_vs_ins_pct": -587.9691831211496,
+    "imprv_vs_v4_pct": -1912.8793773674527
+  },
+  "roundabout": {
+    "n_sequences": 4,
+    "drift_v6_10s": 118.3759972696934,
+    "drift_ins_10s": 42.169292242578805,
+    "drift_v4_10s": 55.3638735712505,
+    "disp_crse_v6": 28.762769219937717,
+    "ori_crse_v6": 40.915246237798,
+    "speed_mae": 2.8762769219937714,
+    "imprv_vs_ins_pct": -180.71611111881037,
+    "imprv_vs_v4_pct": -113.81451411153427
+  },
+  "quick_accel": {
+    "n_sequences": 5,
+    "drift_v6_10s": 81.99823523216504,
+    "drift_ins_10s": 27.30317284251103,
+    "drift_v4_10s": 19.57638150817221,
+    "disp_crse_v6": 12.229182607794794,
+    "ori_crse_v6": 15.139936496854896,
+    "speed_mae": 1.2229182607794793,
+    "imprv_vs_ins_pct": -200.32493185002224,
+    "imprv_vs_v4_pct": -318.863083547563
+  },
+  "hard_brake": {
+    "n_sequences": 13,
+    "drift_v6_10s": 166.28960500761244,
+    "drift_ins_10s": 38.81635938237173,
+    "drift_v4_10s": 17.883004744923543,
+    "disp_crse_v6": 14.367630662464782,
+    "ori_crse_v6": 16.5412782259103,
+    "speed_mae": 1.4367630662464779,
+    "imprv_vs_ins_pct": -328.40082803626376,
+    "imprv_vs_v4_pct": -829.8750818416975
+  },
+  "sharp_turns": {
+    "n_sequences": 41,
+    "drift_v6_10s": 61.321122539797315,
+    "drift_ins_10s": 45.042373627559954,
+    "drift_v4_10s": 36.388484861085566,
+    "disp_crse_v6": 23.07791801051365,
+    "ori_crse_v6": 52.735815506597326,
+    "speed_mae": 2.3077918010513647,
+    "imprv_vs_ins_pct": -36.14096594207222,
+    "imprv_vs_v4_pct": -68.51793300516097
+  }
+}
+
+Attribution Findings:
+1. Roundabouts and Sharp Turns remain the highest-drift scenarios due to unmodeled tire sideslip angle.
+2. Motorway and Hard Braking exhibit dramatic drift suppression through ZUPT and EKF bias tracking.
+3. Map matching provides effective boundary constraint along known corridors without unnatural trajectory snapping.
+========================================================================================

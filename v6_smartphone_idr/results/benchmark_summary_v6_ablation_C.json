@@ -1,0 +1,72 @@
+{
+  "ablation_mode": "C",
+  "total_sequences": 71,
+  "overall_drift_v6": 29.696640482291297,
+  "overall_drift_ins": 40.77608123659971,
+  "overall_drift_v4": 29.9921176721206,
+  "horizon_drifts": {
+    "drift_1s": 0.5831475676990523,
+    "drift_3s": 4.1015824317288105,
+    "drift_5s": 9.715194901041235,
+    "drift_10s": 29.696640482291297
+  },
+  "high_yaw_drift_v6": 55.73993705506901,
+  "low_yaw_drift_v6": 13.71552667626861,
+  "scenarios": {
+    "motorway": {
+      "n_sequences": 8,
+      "drift_v6_10s": 9.318583596232095,
+      "drift_ins_10s": 29.819842989364915,
+      "drift_v4_10s": 10.191933631425579,
+      "disp_crse_v6": 7.14775680309719,
+      "ori_crse_v6": 2.3459791284114178,
+      "speed_mae": 0.7147756803097188,
+      "imprv_vs_ins_pct": 68.75039348947773,
+      "imprv_vs_v4_pct": 8.56903181257594
+    },
+    "roundabout": {
+      "n_sequences": 4,
+      "drift_v6_10s": 53.61632849635771,
+      "drift_ins_10s": 42.169292242578805,
+      "drift_v4_10s": 55.3638735712505,
+      "disp_crse_v6": 35.40726847186592,
+      "ori_crse_v6": 44.4322443020322,
+      "speed_mae": 3.5407268471865914,
+      "imprv_vs_ins_pct": -27.145431296142796,
+      "imprv_vs_v4_pct": 3.1564718329251096
+    },
+    "quick_accel": {
+      "n_sequences": 5,
+      "drift_v6_10s": 26.278253403166122,
+      "drift_ins_10s": 27.30317284251103,
+      "drift_v4_10s": 19.57638150817221,
+      "disp_crse_v6": 23.15044050100812,
+      "ori_crse_v6": 6.956945796394459,
+      "speed_mae": 2.3150440501008123,
+      "imprv_vs_ins_pct": 3.7538473834407635,
+      "imprv_vs_v4_pct": -34.2344773583218
+    },
+    "hard_brake": {
+      "n_sequences": 13,
+      "drift_v6_10s": 16.46480118808472,
+      "drift_ins_10s": 38.81635938237173,
+      "drift_v4_10s": 17.883004744923543,
+      "disp_crse_v6": 18.497539656960754,
+      "ori_crse_v6": 3.514461942233926,
+      "speed_mae": 1.849753965696075,
+      "imprv_vs_ins_pct": 57.5828298942375,
+      "imprv_vs_v4_pct": 7.930454512916284
+    },
+    "sharp_turns": {
+      "n_sequences": 41,
+      "drift_v6_10s": 35.9515563177186,
+      "drift_ins_10s": 45.042373627559954,
+      "drift_v4_10s": 36.388484861085566,
+      "disp_crse_v6": 19.494482462412456,
+      "ori_crse_v6": 41.827576368850316,
+      "speed_mae": 1.9494482462412457,
+      "imprv_vs_ins_pct": 20.182811378925603,
+      "imprv_vs_v4_pct": 1.200732992964557
+    }
+  }
+}

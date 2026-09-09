@@ -1,0 +1,48 @@
+{
+  "fusion_mode": "DECOUPLED",
+  "total_outages": 2132,
+  "primary_target_10s_drift_m": 33.39081693573097,
+  "drift_5s_m": 9.901268690647315,
+  "drift_3s_m": 3.930825501058639,
+  "drift_1s_m": 0.554074204011173,
+  "speed_mae_m_s": 2.3218550572741616,
+  "heading_mae_deg": 11.085234623537215,
+  "per_journey": {
+    "s3c": {
+      "num_outages": 741,
+      "mean_10s_drift": 32.388204790263806
+    },
+    "vta10": {
+      "num_outages": 28,
+      "mean_10s_drift": 31.517799227812166
+    },
+    "vta15": {
+      "num_outages": 14,
+      "mean_10s_drift": 24.898672050190434
+    },
+    "vta1a": {
+      "num_outages": 511,
+      "mean_10s_drift": 41.62360524237047
+    },
+    "vta26": {
+      "num_outages": 36,
+      "mean_10s_drift": 18.415096847036367
+    },
+    "vtb1": {
+      "num_outages": 647,
+      "mean_10s_drift": 32.694482346524175
+    },
+    "vtb2": {
+      "num_outages": 112,
+      "mean_10s_drift": 20.480287370167165
+    },
+    "vw15": {
+      "num_outages": 25,
+      "mean_10s_drift": 0.5138082613865621
+    },
+    "vw5": {
+      "num_outages": 18,
+      "mean_10s_drift": 31.43938526513246
+    }
+  }
+}

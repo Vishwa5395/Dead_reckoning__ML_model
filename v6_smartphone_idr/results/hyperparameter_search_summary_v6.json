@@ -1,0 +1,44 @@
+{
+  "best_config": {
+    "lr": 0.001,
+    "dropout": 0.1,
+    "weight_decay": 0.0001,
+    "w_head": 1.5,
+    "tag": "Candidate_A",
+    "val_loss": -0.07975581178770345
+  },
+  "all_trials": [
+    {
+      "lr": 0.001,
+      "dropout": 0.1,
+      "weight_decay": 0.0001,
+      "w_head": 1.5,
+      "tag": "Candidate_A",
+      "val_loss": -0.07975581178770345
+    },
+    {
+      "lr": 0.0005,
+      "dropout": 0.2,
+      "weight_decay": 5e-05,
+      "w_head": 2.0,
+      "tag": "Candidate_C",
+      "val_loss": -0.07677196492167081
+    },
+    {
+      "lr": 0.0012,
+      "dropout": 0.15,
+      "weight_decay": 0.0002,
+      "w_head": 1.2,
+      "tag": "Candidate_D",
+      "val_loss": -0.07662347726085607
+    },
+    {
+      "lr": 0.0008,
+      "dropout": 0.15,
+      "weight_decay": 0.0001,
+      "w_head": 1.8,
+      "tag": "Candidate_B (Default)",
+      "val_loss": -0.06173858287579873
+    }
+  ]
+}
