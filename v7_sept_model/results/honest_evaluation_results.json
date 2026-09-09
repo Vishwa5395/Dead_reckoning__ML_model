@@ -1,0 +1,80 @@
+{
+  "three_regime_router": {
+    "motorway": {
+      "drift_10s_m": 19.769707274811026,
+      "num_outages": 7
+    },
+    "roundabout": {
+      "drift_10s_m": 59.26615997654483,
+      "num_outages": 3
+    },
+    "quick_accel": {
+      "drift_10s_m": 40.31590735830981,
+      "num_outages": 4
+    },
+    "hard_brake": {
+      "drift_10s_m": 23.421160830646944,
+      "num_outages": 12
+    },
+    "sharp_turns": {
+      "drift_10s_m": 38.727407684706805,
+      "num_outages": 39
+    }
+  },
+  "v4d_baseline": {
+    "motorway": {
+      "drift_10s_m": 10.189926050904806,
+      "num_outages": 7
+    },
+    "roundabout": {
+      "drift_10s_m": 55.36966305195275,
+      "num_outages": 3
+    },
+    "quick_accel": {
+      "drift_10s_m": 19.57540492519973,
+      "num_outages": 4
+    },
+    "hard_brake": {
+      "drift_10s_m": 17.884317530141555,
+      "num_outages": 12
+    },
+    "sharp_turns": {
+      "drift_10s_m": 36.38775451337,
+      "num_outages": 39
+    }
+  },
+  "oracle_reported": {
+    "motorway": {
+      "drift_10s_m": 7.126451116650822,
+      "num_outages": 7,
+      "best_repo_m": 7.12
+    },
+    "roundabout": {
+      "drift_10s_m": 21.22662715981135,
+      "num_outages": 3,
+      "best_repo_m": 55.36
+    },
+    "quick_accel": {
+      "drift_10s_m": 9.40901010962525,
+      "num_outages": 4,
+      "best_repo_m": 18.5
+    },
+    "hard_brake": {
+      "drift_10s_m": 13.797961964794505,
+      "num_outages": 12,
+      "best_repo_m": 14.74
+    },
+    "sharp_turns": {
+      "drift_10s_m": 27.65370522622884,
+      "num_outages": 39,
+      "best_repo_m": 35.42
+    }
+  },
+  "overall": {
+    "three_regime_drift_10s_m": 34.90573676858277,
+    "v4d_baseline_drift_10s_m": 29.99191273224799,
+    "oracle_reported_drift_10s_m": 21.465709648229996,
+    "previous_best_repo_m": 29.55,
+    "total_outages": 65
+  }
+}

@@ -1,0 +1,162 @@
+{
+  "cross_validation": {
+    "n_folds": 9,
+    "folds": [
+      {
+        "fold": 1,
+        "held_out_name": "vw12",
+        "held_out_scenario": "motorway",
+        "best_params": {
+          "tau_yaw": 0.05,
+          "tau_accel": 1.8,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 36.740770013873956,
+        "held_out_drift_m": 20.9358220624782,
+        "v4d_drift_m": 10.189926050904806,
+        "n_outages": 7
+      },
+      {
+        "fold": 2,
+        "held_out_name": "vta11",
+        "held_out_scenario": "roundabout",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 33.80245244118821,
+        "held_out_drift_m": 58.94460169999178,
+        "v4d_drift_m": 55.36966305195275,
+        "n_outages": 3
+      },
+      {
+        "fold": 3,
+        "held_out_name": "vta12",
+        "held_out_scenario": "quick_accel",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 34.61698656723789,
+        "held_out_drift_m": 40.23741896303321,
+        "v4d_drift_m": 19.57540492519973,
+        "n_outages": 4
+      },
+      {
+        "fold": 4,
+        "held_out_name": "vw16b",
+        "held_out_scenario": "hard_brake",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 36.64557280977478,
+        "held_out_drift_m": 25.707935191603156,
+        "v4d_drift_m": 17.62231279599903,
+        "n_outages": 10
+      },
+      {
+        "fold": 5,
+        "held_out_name": "vw17",
+        "held_out_scenario": "hard_brake",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 35.5975600916794,
+        "held_out_drift_m": 14.969785338920786,
+        "v4d_drift_m": 19.194341200854172,
+        "n_outages": 2
+      },
+      {
+        "fold": 6,
+        "held_out_name": "vta9",
+        "held_out_scenario": "hard_brake",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 34.96285933005606,
+        "held_out_drift_m": NaN,
+        "v4d_drift_m": NaN,
+        "n_outages": 0
+      },
+      {
+        "fold": 7,
+        "held_out_name": "vw6",
+        "held_out_scenario": "sharp_turns",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 35.277885062186996,
+        "held_out_drift_m": 33.416369372322386,
+        "v4d_drift_m": 25.614491577769794,
+        "n_outages": 11
+      },
+      {
+        "fold": 8,
+        "held_out_name": "vw7",
+        "held_out_scenario": "sharp_turns",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.5,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 33.90954518467636,
+        "held_out_drift_m": 38.799932288224966,
+        "v4d_drift_m": 39.42498641972245,
+        "n_outages": 14
+      },
+      {
+        "fold": 9,
+        "held_out_name": "vw8",
+        "held_out_scenario": "sharp_turns",
+        "best_params": {
+          "tau_yaw": 0.12,
+          "tau_accel": 1.8,
+          "tau_speed": 14.0
+        },
+        "train_drift_m": 32.722137639330406,
+        "held_out_drift_m": 43.17712558933334,
+        "v4d_drift_m": 41.81522919927486,
+        "n_outages": 14
+      }
+    ],
+    "mean_cv_router_drift_m": 34.52362381323847,
+    "std_cv_router_drift_m": 13.077293569817208,
+    "weighted_cv_router_drift_m": 35.17864663637987,
+    "mean_cv_v4d_drift_m": 28.6007944027097,
+    "std_cv_v4d_drift_m": 14.347041951445632,
+    "weighted_cv_v4d_drift_m": 29.991912732247993
+  },
+  "global_best": {
+    "tau_yaw": 0.12,
+    "tau_accel": 1.5,
+    "tau_speed": 14.0,
+    "global_drift_m": 34.96285933005606
+  },
+  "v4d_baseline": {
+    "overall_drift_m": 29.99191273224799,
+    "per_scenario": {
+      "motorway": 10.189926050904806,
+      "roundabout": 55.36966305195275,
+      "quick_accel": 19.57540492519973,
+      "hard_brake": 17.884317530141555,
+      "sharp_turns": 36.38775451337
+    }
+  },
+  "router_per_scenario": {
+    "motorway": 19.775022842482695,
+    "roundabout": 58.94460169999178,
+    "quick_accel": 40.23741896303321,
+    "hard_brake": 23.91824354948943,
+    "sharp_turns": 38.70149469257138
+  }
+}

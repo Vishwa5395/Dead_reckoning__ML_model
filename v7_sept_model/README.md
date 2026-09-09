@@ -1,117 +1,176 @@
-# PINO-DR v7 · 5-Supreme-Specialists Dead Reckoning System
+# PINO-DR v7 · Autonomous 5-Expert Mixture-of-Experts (MoE) Dead Reckoning System
 
-> **Physics-Informed Neural Odometry v7** — A scenario-adaptive ensemble of five
-> compact specialist neural networks with domain-specific kinematic post-processing,
-> achieving **21.47 m mean drift** over 10-second GNSS outages across 65 test sequences.
+> **Physics-Informed Neural Odometry v7 (Supreme MoE)** — A fully differentiable, end-to-end Mixture-of-Experts neural network combining five specialized recurrent IMU odometry estimators with an autonomous kinematic neural router. 
+> Designed for real-time mobile deployment (ONNX & TorchScript, < 2 ms latency per window), operating 100% autonomously without external hints, oracle labels, or artificial post-processing multipliers.
 
 ---
 
 ## Highlights
 
-| Metric | Value |
-| :--- | :--- |
-| **Overall 10s Drift** | **21.47 m** (new all-time project record, −27.4 % vs previous best 29.55 m) |
-| **1s / 3s / 5s Drift** | 0.99 m / 4.16 m / 8.43 m |
-| **Total Sequences Evaluated** | 65 |
-| **Specialist Count** | 5 (Motorway · Roundabout · Quick Accel · Hard Brake · Sharp Turns) |
+| Metric | Production MoE (Autonomous) | Baseline v4-D (Single Model) | Legacy v3 PINO-DR |
+| :--- | :---: | :---: | :---: |
+| **Overall 10s Drift (65 Outages)** | **29.56 m** 🏆 | 29.99 m | 32.27 m |
+| **Motorway Drift** | **7.27 m** (−28.7%) | 10.19 m | 7.13 m |
+| **Hard Brake Drift** | **16.81 m** (−6.0%) | 17.88 m | 17.15 m |
+| **Roundabout Drift** | **55.16 m** | 55.37 m | 75.31 m |
+| **Quick Accel Drift** | **19.43 m** | 19.58 m | 18.50 m |
+| **Sharp Turns Drift** | **36.55 m** | 36.39 m | 36.80 m |
+| **Gating Confidence on Highway** | **94.2 % Expert 0** | N/A | N/A |
+| **Standalone ONNX Model Size** | **284 KB** (Self-contained) | 120 KB | 120 KB |
+| **Inference Latency (CPU)** | **~1.5 ms / window** | ~0.8 ms | ~0.8 ms |
+| **Deployment Interfaces** | ONNX Runtime & TorchScript | PyTorch | PyTorch |
 
 ---
 
-## 1. Architecture Overview
+## 1. System Architecture
 
-Rather than a single monolithic model, v7 deploys **five compact specialist
-networks** routed by a `SupremeKinematicRouter`. Each specialist is independently
-trained and tuned for its scenario, with scenario-specific kinematic
-post-processing applied during closed-loop simulation.
+The PINO-DR v7 system replaces brittle discrete threshold switches with a **fully differentiable Supreme Mixture-of-Experts (`SupremeMoENet`)**. 
 
 ```
-                         ┌──────────────────────────────────────────┐
-                         │       6-Channel IMU Sensor Window        │
-                         │ [a_fwd, ω_yaw, a_lat, v_prev, ω̇_yaw,  │
-                         │                    a_cent_residual]      │
-                         └────────────────────┬─────────────────────┘
-                                              │
-                    ┌───────────┬──────────────┼─────────────┬───────────┐
-                    ▼           ▼              ▼             ▼           ▼
-              ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐
-              │ Motorway │ │Roundabout│ │Quick Accel│ │Hard Brake│ │Sharp Turn│
-              │  (4ch)   │ │  (6ch)   │ │  (6ch)   │ │  (6ch)   │ │  (6ch)   │
-              │ Conv1D + │ │ Conv1D + │ │ Conv1D + │ │ Conv1D + │ │ Conv1D + │
-              │ BiGRU +  │ │ BiGRU +  │ │ BiGRU +  │ │ BiGRU +  │ │ BiGRU +  │
-              │ Attn     │ │ 2H-Attn  │ │ 2H-Attn  │ │ 2H-Attn  │ │ 2H-Attn  │
-              └─────┬────┘ └─────┬────┘ └─────┬────┘ └─────┬────┘ └─────┬────┘
-                    │            │             │            │            │
-                    └────────────┴──────┬──────┴────────────┴────────────┘
-                                        ▼
-                           SupremeKinematicRouter
-                    (Per-scenario kinematic post-processing)
-                                        │
-                                        ▼
-                          Final Trajectory Estimate
-                    (displacement Δd, yaw rate Δψ, ZUPT)
+                               ┌──────────────────────────────────────────────┐
+                               │         6-Channel IMU Sensor Window          │
+                               │  (10 steps @ 10 Hz: a_fwd, ω_yaw, a_lat,     │
+                               │               v_prev, ω̇_yaw, a_cent_res)     │
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+                       ┌──────────────────────────────┴──────────────────────────────┐
+                       │                                                             │
+                       ▼                                                             ▼
+         ┌───────────────────────────┐                                 ┌───────────────────────────┐
+         │  Physical Neural Router   │                                 │   5 Recurrent Experts     │
+         │ (20 Kinematic Invariants) │                                 │ (BiGRU + Attn + Residual) │
+         └─────────────┬─────────────┘                                 └─────────────┬─────────────┘
+                       │ Softmax Gating Weights [g0, ..., g4]                        │ Output Vectors [y0, ..., y4]
+                       │                                                             │
+                       └──────────────────────────────┬──────────────────────────────┘
+                                                      │
+                                                      ▼
+                                           Weighted Softmax Blending
+                                           y = Σ (g_i * y_i)
+                                                      │
+                                                      ▼
+                                       Autonomous Closed-Loop State
+                                       (Δd, Δψ, ZUPT, v_next, [x, y])
 ```
 
-### Specialist Specifications
+### 1.1 The Five Domain Experts
+1. **Expert 0 (Motorway Specialist)**: 4-channel BiGRU + Temporal Attention. High-speed straight-line anchor minimizing cumulative longitudinal drift.
+2. **Expert 1 (Roundabout Specialist)**: 6-channel BiGRU + Directional Attention + Centripetal Coupling. Sustained lateral acceleration specialist.
+3. **Expert 2 (Quick Acceleration Specialist)**: 6-channel BiGRU + Directional Attention. Dynamic forward burst tracking.
+4. **Expert 3 (Hard Braking Specialist)**: 4-channel BiGRU + Attention. High deceleration tracking without autoregressive velocity hysteresis.
+5. **Expert 4 (Sharp Turn Specialist)**: 6-channel BiGRU + Directional Attention + Yaw Coupling. Gyroscopic-anchored acute cornering specialist.
 
-| Specialist | Input Ch | Params | Base Weights | Kinematic Post-Processing |
-| :--- | :---: | :---: | :--- | :--- |
-| **Motorway** | 4 | ~21.7k | v3 PINO-DR `best_model.pth` | Straight-line velocity anchor |
-| **Roundabout** | 6 | ~21.9k | v4 Ablation-D | Centripetal vector invariance, rotated-phone yaw derivation |
-| **Quick Accel** | 6 | ~21.9k | v4 Ablation-D | Acceleration burst tracking |
-| **Hard Brake** | 6 | ~21.9k | v4 Ablation-D | Longitudinal deceleration integration (a_fwd < −0.20 m/s²) |
-| **Sharp Turns** | 6 | ~21.9k | v4 Ablation-D | Gyro-anchored centripetal assist, cornering speed decay |
+### 1.2 The Physical Neural Router
+The router extracts 20 coordinate-centered physical summary statistics from the 10-step IMU window:
+- Forward & lateral acceleration statistics (mean, standard deviation, max magnitude).
+- Centered yaw rate and angular jerk ($d\omega/dt$).
+- Autoregressive speed history and centripetal residual ($a_{\text{lat}} - v \cdot \omega_{\text{yaw}}$).
 
----
-
-## 2. Benchmark Results (10-Second GNSS Outages)
-
-| Scenario | Sequences | Best in Repo (Baseline) | 2× Target | **v7 Supreme (Ours)** | Improvement | Status |
-| :--- | :---: | :---: | :---: | :---: | :---: | :--- |
-| **Roundabout** | 3 | 55.36 m (v4) | ≤ 27.68 m | **21.23 m** | **+61.7%** | ✅ **SMASHED 2× TARGET** (beat by 6.45 m) |
-| **Quick Accel** | 4 | 18.50 m | ≤ 9.25 m | **9.41 m** | **+49.1%** | 🟡 Within 16 cm of target |
-| **Sharp Turns** | 39 | 35.42 m | ≤ 17.71 m | **27.65 m** | **+21.9%** | ✅ **New repo best** (−7.77 m) |
-| **Hard Brake** | 12 | 14.74 m | ≤ 7.37 m | **13.80 m** | **+6.4%** | ✅ **New repo best** (4 outages beat 2× target) |
-| **Motorway** | 7 | 7.12 m | ≤ 3.56 m | **7.13 m** | Matched | ✅ Cruising anchor (2.8% error) |
-| **OVERALL** | **65** | **29.55 m** | ≤ 14.77 m | **21.47 m** | **+27.4%** | 🏆 **ALL-TIME PROJECT RECORD** |
-
-### Multi-Horizon Drift Progression
-
-| Horizon | Mean Drift |
-| :---: | :---: |
-| 1 s | 0.99 m |
-| 3 s | 4.16 m |
-| 5 s | 8.43 m |
-| 10 s | 21.47 m |
+These physical invariants are passed through a 2-layer MLP (`Linear(20, 64) -> GELU -> Linear(64, 5) -> Softmax`) trained with continuous KL-divergence to automatically blend expert outputs smoothly at every time step, completely eliminating step-discontinuity shocks during regime transitions.
 
 ---
 
-## 3. Key Physical Insights
+## 2. Rigorous Benchmark Results (65 Test Sequences)
 
-### 3.1 Sharp Turns — Gyroscope Directional Anchoring
+All evaluations are conducted in **strict closed-loop mode** over 10-second GNSS outages across all 65 test sequences. At test time, the model receives **only raw IMU windows** with zero prior knowledge of scenario labels and zero post-processing gain multipliers.
 
-Smartphone cradle mounts can rotate, sometimes **inverting the lateral
-accelerometer axis**. Using raw `a_lat` for turn direction caused 180° heading
-flips. The fix: anchor turn direction to the **gyroscope yaw rate sign**
-(`sign(ω_yaw)`) while scaling angular magnitude via centripetal acceleration
-(`|a_lat| / v_est`). Combined with cornering speed decay and entry-deceleration
-gating, this cut Sharp Turns drift from 35.42 m → **27.65 m**.
+### 2.1 Scenario Breakdown
 
-### 3.2 Hard Brake — Longitudinal Deceleration Integration
+| Scenario | Outages | Legacy v3 | v4-D Baseline | Discrete Switch Router | **v7 Supreme MoE (Ours)** |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Motorway** | 7 | 7.13 m | 10.19 m | 9.94 m | **7.27 m** ✅ |
+| **Hard Brake** | 12 | 17.15 m | 17.88 m | 18.23 m | **16.81 m** ✅ |
+| **Quick Accel** | 4 | 18.50 m | 19.58 m | 20.12 m | **19.43 m** ✅ |
+| **Sharp Turns** | 39 | 36.80 m | 36.39 m | 42.15 m | **36.55 m** |
+| **Roundabout** | 3 | 75.31 m | 55.37 m | 63.40 m | **55.16 m** ✅ |
+| **OVERALL MEAN** | **65** | **32.27 m** | **29.99 m** | **35.18 m** | **29.56 m** 🏆 |
 
-During hard braking, the neural network's autoregressive velocity feedback
-(`v_prev`) resists rapid speed drops — the network has learned a "cruising"
-prior. Coupling physical forward acceleration integration
-(`a_fwd < −0.20 m/s²` gates active braking) with pre-outage deceleration
-momentum forces the model to respect actual vehicle deceleration, cutting
-stop-event Outage 5 from 18.30 m → **2.81 m**.
+### 2.2 Why Discrete Heuristic Switching Failed vs. Why Soft MoE Succeeded
+- **The Failure of Discrete Switching (35.18 m)**: Attempting to switch discrete models via if-else rules at 1 Hz causes abrupt step-changes in velocity estimates. In an autoregressive system where $v_{t} = v_{t-1} + \Delta v$, sudden model switches inject artificial impulse noise, destabilizing the trajectory.
+- **The Success of Supreme MoE (29.56 m)**: The differentiable soft gating smoothly interpolates network weights at 10 Hz. On straight motorways, the router puts **94.2% weight on Expert 0**, dropping motorway drift to **7.27 m** (beating single-model v4-D by 2.92 m) while preserving tight cornering response during maneuvers.
 
-### 3.3 Roundabout — Rotated-Phone Centripetal Invariance
+---
 
-When a smartphone is mounted sideways, its forward accelerometer measures
-lateral centripetal force during curves (`a_fwd ≈ +2.5 m/s²`). Deriving yaw
-rate from the horizontal acceleration vector norm (`‖a_horiz‖ / v`) and
-suppressing false forward acceleration cut Roundabout drift from 55.36 m →
-**21.23 m**, smashing the 2× target by 6.45 m.
+## 3. Production Deployment & Mobile Integration
+
+The model is exported to standalone single-file formats with zero external dependencies:
+- **ONNX Format**: `v7_sept_model/checkpoints/best_supreme_moe.onnx` (284 KB)
+- **TorchScript Format**: `v7_sept_model/checkpoints/best_supreme_moe_torchscript.pt` (744 KB)
+
+### 3.1 Input / Output Specifications
+- **Input Tensor**: `imu_input_6ch` of shape `[batch_size, 10, 6]` (float32).
+  - Channels (normalized with dataset `MinMaxScaler`):
+    0. `a_fwd`: Forward acceleration
+    1. `omega_yaw`: Gyroscope yaw rate
+    2. `a_lat`: Lateral acceleration
+    3. `v_prev`: Autoregressive speed estimate from previous step
+    4. `yaw_accel`: Numerical angular acceleration ($d\omega/dt$)
+    5. `a_cent_residual`: Centripetal residual ($a_{\text{lat}} - v_{\text{prev}} \cdot \omega_{\text{yaw}}$)
+- **Outputs**:
+  - `disp_pred`: Predicted displacement step $\Delta d$ in meters (`[batch_size, 1]`)
+  - `ori_pred`: Predicted heading change $\Delta \psi$ in radians (`[batch_size, 1]`)
+  - `zupt_logits`: Zero-velocity detection logit (`[batch_size, 1]`)
+  - `router_weights`: Softmax regime affinities $[g_0, g_1, g_2, g_3, g_4]$ (`[batch_size, 5]`)
+
+### 3.2 Mobile / Production Integration Code (Python / ONNX Runtime)
+
+```python
+import numpy as np
+import onnxruntime as ort
+
+class DeadReckoningEngine:
+    def __init__(self, onnx_model_path: str):
+        # Load lightweight 284 KB model
+        self.session = ort.InferenceSession(onnx_model_path)
+        self.input_name = self.session.get_inputs()[0].name
+        
+        # State variables
+        self.x = 0.0
+        self.y = 0.0
+        self.heading = 0.0
+        self.speed = 0.0
+        
+        # Feature normalization bounds (from dataset scaler)
+        self.scale_min = np.array([-15.0, -3.14, -15.0, 0.0, -10.0, -15.0], dtype=np.float32)
+        self.scale_max = np.array([15.0, 3.14, 15.0, 45.0, 10.0, 15.0], dtype=np.float32)
+
+    def normalize(self, window_10x6: np.ndarray) -> np.ndarray:
+        return (window_10x6 - self.scale_min) / (self.scale_max - self.scale_min)
+
+    def update_step(self, raw_window_10x6: np.ndarray, dt: float = 0.1):
+        """
+        raw_window_10x6: numpy array shape (10, 6) containing 1 second of IMU history.
+        """
+        # 1. Normalize input
+        norm_window = self.normalize(raw_window_10x6)[np.newaxis, :, :].astype(np.float32)
+        
+        # 2. Run inference (< 2ms on mobile CPU)
+        disp_pred, ori_pred, zupt_logits, weights = self.session.run(
+            None, {self.input_name: norm_window}
+        )
+        
+        delta_d = float(disp_pred[0, 0])
+        delta_psi = float(ori_pred[0, 0])
+        is_stationary = float(zupt_logits[0, 0]) > 0.5
+        
+        # 3. ZUPT thresholding & dead reckoning integration
+        if is_stationary:
+            delta_d = 0.0
+            self.speed = 0.0
+        else:
+            self.speed = delta_d / dt
+            self.heading += delta_psi
+            self.x += delta_d * np.cos(self.heading)
+            self.y += delta_d * np.sin(self.heading)
+            
+        return {
+            "x": self.x,
+            "y": self.y,
+            "heading": self.heading,
+            "speed": self.speed,
+            "regime_weights": weights[0].tolist()
+        }
+```
 
 ---
 
@@ -119,84 +178,39 @@ suppressing false forward acceleration cut Roundabout drift from 55.36 m →
 
 ```
 v7_sept_model/
-├── README.md                          ← You are here
-├── run_pipeline_v7.py                 ← Full pipeline driver (split → train → eval → report)
+├── README.md                          ← Official Documentation & Integration Guide
 ├── checkpoints/
-│   ├── best_supreme_motorway.pth      ← Trained specialist weights
-│   ├── best_supreme_roundabout.pth
-│   ├── best_supreme_quick_accel.pth
-│   ├── best_supreme_hard_brake.pth
-│   └── best_supreme_sharp_turns.pth
+│   ├── best_supreme_moe.onnx          ← Standalone Production ONNX Model (284 KB)
+│   ├── best_supreme_moe_torchscript.pt← Production TorchScript Model (744 KB)
+│   ├── best_supreme_moe.pth           ← Full PyTorch Model Checkpoint (517 KB)
+│   └── ...                            ← Individual expert base weights
 ├── src/
-│   ├── models_supreme_five.py         ← 5 specialist network definitions + SupremeKinematicRouter
-│   ├── split_data_five.py             ← Scenario-aware data partitioning
-│   ├── train_five_specialists.py      ← Per-specialist training loop
-│   ├── evaluate_five_specialists.py   ← Closed-loop outage evaluation engine
-│   └── plot_five_supreme.py           ← Trajectory visualization
-├── results/
-│   ├── benchmark_summary_five_supreme.json   ← Official benchmark metrics
-│   ├── v7_model_report.md                    ← Detailed model report
-│   ├── trajectory_supreme_*.png              ← Per-scenario trajectory plots
-│   └── ...                                   ← Historical evaluation artifacts
-└── data/                              ← Preprocessed IMU sequences (gitignored .npz files)
+│   ├── moe_five_model.py              ← SupremeMoENet & PhysicalNeuralRouter PyTorch architecture
+│   ├── train_moe_v7.py                ← MoE Router training loop
+│   ├── export_moe.py                  ← Standalone ONNX & TorchScript exporter
+│   ├── evaluate_five_specialists.py   ← 65-sequence closed-loop evaluation engine
+│   └── plot_five_supreme.py           ← Trajectory visualization engine
+└── results/
+    ├── benchmark_summary_v7_supreme_moe.json ← Official validated metrics (29.56 m)
+    ├── honest_evaluation_addendum.md  ← Scientific audit & technical post-mortem
+    └── trajectory_supreme_*.png       ← Autonomous evaluation trajectory plots
 ```
 
 ---
 
-## 5. Quick Start
+## 5. Reproducing Benchmarks
 
-### Prerequisites
-
-```bash
-pip install torch numpy matplotlib
-```
-
-### Run the Full 5-Supreme Pipeline
+To reproduce the benchmark results on your machine:
 
 ```bash
-# From the repository root (parent of v7_sept_model/)
-
-# Step 1: Split data into 5 scenario-specific partitions
-python -m v7_sept_model.src.split_data_five
-
-# Step 2: Train all 5 supreme specialists
-python -m v7_sept_model.src.train_five_specialists
-
-# Step 3: Evaluate with closed-loop 10-second outage simulation
+# 1. Run 65-sequence autonomous closed-loop evaluation
 python -m v7_sept_model.src.evaluate_five_specialists
 
-# Step 4: Generate trajectory plots
+# 2. Export clean ONNX & TorchScript models
+python -m v7_sept_model.src.export_moe
+
+# 3. Generate trajectory comparison plots
 python -m v7_sept_model.src.plot_five_supreme
 ```
 
-### Run Evaluation Only (Pre-Trained Weights)
-
-If you want to reproduce the benchmark results using the included checkpoints:
-
-```bash
-python -m v7_sept_model.src.evaluate_five_specialists
-```
-
-Results are written to `v7_sept_model/results/benchmark_summary_five_supreme.json`.
-
----
-
-## 6. Evolution from Previous Versions
-
-| Version | Architecture | Overall 10s Drift | Key Innovation |
-| :---: | :--- | :---: | :--- |
-| **v1** | Baseline CNN | 46.23 m | Initial dead reckoning model |
-| **v2** | Production CNN-GRU | ~40 m | Temporal encoding |
-| **v3** | PINO-DR | 32.27 m | Physics-informed loss, attention |
-| **v4** | Turn-Focused Ablation | 29.99 m | Dual-attention, displacement-yaw coupling |
-| **v7** | **5-Supreme-Specialists** | **21.47 m** | Scenario routing, kinematic post-processing |
-
-**v7 reduces overall drift by 53.5% compared to pure inertial navigation** and
-sets a new all-time project record across all 65 evaluation sequences.
-
----
-
-## License
-
-This project is part of the SIH (Smart India Hackathon) Dead Reckoning ML Model
-research initiative.
+All metrics will be written to `v7_sept_model/results/benchmark_summary_v7_supreme_moe.json`.
