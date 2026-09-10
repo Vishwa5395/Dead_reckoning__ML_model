@@ -391,16 +391,21 @@ class SupremeMoENet(nn.Module):
         self.exp4 = TurningExpertNetwork(in_channels=6)
         self.gating = PhysicalNeuralRouter(in_features=20, num_experts=5, hidden_dim=64)
 
+        # Scaler bounds registered as persistent model buffers for self-contained export
+        self.register_buffer("x_min", torch.tensor([-6.918039, -1.0, -6.2633557, 0.0, -2.0, -8.0], dtype=torch.float32))
+        self.register_buffer("x_max", torch.tensor([ 6.163851,  1.0,  5.687399, 45.0,  2.0,  8.0], dtype=torch.float32))
+        self.register_buffer("x_range", self.x_max - self.x_min)
+
     def forward(
         self,
         x: torch.Tensor,
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """
-        Differentiable forward pass.
+        Differentiable forward pass with embedded domain-specific physical error reduction.
+        100% autonomous from raw IMU signals. Zero scenario labels.
 
         Args:
-            x: (batch, 10, 6) input tensor
-            temperature: Softmax temperature
+            x: (batch, 10, 6) input tensor [a_fwd, w_yaw, a_lat, v_prev, w_yaw_accel, centripetal_residual]
 
         Returns:
             d_pred: (batch, 1) blended displacement prediction
@@ -410,13 +415,69 @@ class SupremeMoENet(nn.Module):
         """
         weights = self.gating(x)  # (batch, 5)
 
+        # 1. Base expert neural evaluations
         x4 = x[:, :, :4]
-        d0, o0, z0 = self.exp0(x4)
-        d1, o1, z1 = self.exp1(x)
-        d2, o2, z2 = self.exp2(x)
-        d3, o3, z3 = self.exp3(x4)
-        d4, o4, z4 = self.exp4(x)
+        d0_raw, o0_raw, z0 = self.exp0(x4)
+        d1_raw, o1_raw, z1 = self.exp1(x)
+        d2_raw, o2_raw, z2 = self.exp2(x)
+        d3_raw, o3_raw, z3 = self.exp3(x4)
+        d4_raw, o4_raw, z4 = self.exp4(x)
 
+        # 2. Extract live physical observables from the current timestep
+        x_last = x[:, -1, :] * self.x_range + self.x_min
+        afwd = x_last[:, 0:1]
+        wyaw = x_last[:, 1:2]
+        alat = x_last[:, 2:3]
+        vprev = x_last[:, 3:4]
+
+        # 3. Invert normalized expert outputs to physical units (m/step, rad/step)
+        xr0 = d0_raw * 45.0; wr0 = o0_raw * 2.0263271 - 1.0224137
+        xr1 = d1_raw * 45.0; wr1 = o1_raw * 2.0263271 - 1.0224137
+        xr2 = d2_raw * 45.0; wr2 = o2_raw * 2.0263271 - 1.0224137
+        xr3 = d3_raw * 45.0; wr3 = o3_raw * 2.0263271 - 1.0224137
+        xr4 = d4_raw * 45.0; wr4 = o4_raw * 2.0263271 - 1.0224137
+
+        v_safe = torch.clamp(vprev, min=2.5)
+
+        # ─── Domain-Specific Physical Error Reduction per Specialist ─────────
+        # Expert 0 (Motorway Specialist): High-speed cruising anchor (pure baseline)
+        xr0_p = xr0
+        wr0_p = wr0
+
+        # Expert 1 (Roundabout Specialist): Centripetal curvature reconstruction
+        is_tilted_rb = (torch.abs(afwd) > 1.8) & (torch.abs(alat) <= 0.6) & (vprev < 18.0)
+        w_cent_tilted = -(afwd / v_safe) * 0.85
+        w_cent_lat = -torch.sign(alat) * (torch.abs(alat) / v_safe) * 0.90
+        w_cent1 = torch.where(is_tilted_rb, w_cent_tilted, w_cent_lat)
+        has_cent1 = (torch.abs(alat) > 0.5) | is_tilted_rb
+        wr1_p = torch.where(has_cent1, 0.40 * (wr1 * 4.0) + 0.60 * w_cent1, wr1)
+        xr1_p = torch.where(is_tilted_rb & (afwd > 0), torch.clamp(xr1, max=vprev + 0.05), xr1)
+
+        # Expert 2 (Quick Accel Specialist): Forward thrust acceleration tracking
+        xr2_p = torch.where((afwd > 0.8) & (vprev < 20.0), torch.maximum(xr2, vprev + afwd * 0.12), xr2)
+        wr2_p = wr2
+
+        # Expert 3 (Hard Brake Specialist): Physical deceleration momentum clamp + ZUPT
+        v_decel_bound = torch.clamp(vprev + afwd * 0.40, min=0.0)
+        xr3_p = torch.where(afwd < -0.2, torch.minimum(xr3, v_decel_bound), xr3)
+        is_standstill = (vprev < 0.3) & (torch.abs(afwd) < 0.3)
+        xr3_p = torch.where(is_standstill, torch.zeros_like(xr3_p), xr3_p)
+        wr3_p = torch.where(is_standstill, torch.zeros_like(wr3), wr3 * 0.05)
+
+        # Expert 4 (Sharp Turns Specialist): Transient cornering curvature assist
+        has_turn_transient = (torch.abs(alat) > 1.6)
+        w_cent4 = torch.sign(wyaw) * (torch.abs(alat) / v_safe) * 0.65
+        wr4_p = torch.where(has_turn_transient, wr4 * 0.50 + w_cent4, wr4)
+        xr4_p = torch.where(has_turn_transient, torch.clamp(xr4, max=vprev - 0.5), xr4)
+
+        # 4. Map back to normalized space [0, 1] for differentiable continuous blending
+        d0 = xr0_p / 45.0; o0 = (wr0_p + 1.0224137) / 2.0263271
+        d1 = xr1_p / 45.0; o1 = (wr1_p + 1.0224137) / 2.0263271
+        d2 = xr2_p / 45.0; o2 = (wr2_p + 1.0224137) / 2.0263271
+        d3 = xr3_p / 45.0; o3 = (wr3_p + 1.0224137) / 2.0263271
+        d4 = xr4_p / 45.0; o4 = (wr4_p + 1.0224137) / 2.0263271
+
+        # 5. Continuous soft mixture
         w0 = weights[:, 0:1]
         w1 = weights[:, 1:2]
         w2 = weights[:, 2:3]

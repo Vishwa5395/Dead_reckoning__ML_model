@@ -1,10 +1,10 @@
 {
   "motorway": {
-    "drift_10s_m": 7.129263926531429,
+    "drift_10s_m": 7.129248224809234,
     "v4d_drift_10s_m": 10.189926050904806,
     "best_repo_m": 7.12,
     "target_2x_m": 3.56,
-    "improvement_vs_repo_pct": -0.13011132768861172,
+    "improvement_vs_repo_pct": -0.12989079788249744,
     "num_outages": 7,
     "avg_router_weights": [
       0.999,
@@ -15,11 +15,11 @@
     ]
   },
   "roundabout": {
-    "drift_10s_m": 55.11657097360216,
+    "drift_10s_m": 30.060161848638543,
     "v4d_drift_10s_m": 55.36966305195275,
     "best_repo_m": 55.36,
     "target_2x_m": 27.68,
-    "improvement_vs_repo_pct": 0.43972006213482867,
+    "improvement_vs_repo_pct": 45.70057469537836,
     "num_outages": 3,
     "avg_router_weights": [
       0.0,
@@ -30,11 +30,11 @@
     ]
   },
   "quick_accel": {
-    "drift_10s_m": 18.847380577090345,
+    "drift_10s_m": 18.72978693036011,
     "v4d_drift_10s_m": 19.57540492519973,
     "best_repo_m": 18.5,
     "target_2x_m": 9.25,
-    "improvement_vs_repo_pct": -1.8777328491369982,
+    "improvement_vs_repo_pct": -1.2420915154600523,
     "num_outages": 4,
     "avg_router_weights": [
       0.0,
@@ -45,41 +45,41 @@
     ]
   },
   "hard_brake": {
-    "drift_10s_m": 16.653608783282298,
+    "drift_10s_m": 16.733306785086608,
     "v4d_drift_10s_m": 17.884317530141555,
     "best_repo_m": 14.74,
     "target_2x_m": 7.37,
-    "improvement_vs_repo_pct": -12.982420510734718,
+    "improvement_vs_repo_pct": -13.523112517548222,
     "num_outages": 12,
     "avg_router_weights": [
-      0.153,
+      0.149,
       0.0,
       0.108,
       0.058,
-      0.681
+      0.686
     ]
   },
   "sharp_turns": {
-    "drift_10s_m": 36.57082690340467,
+    "drift_10s_m": 35.94477661953581,
     "v4d_drift_10s_m": 36.38775451337,
     "best_repo_m": 35.42,
     "target_2x_m": 17.71,
-    "improvement_vs_repo_pct": -3.2490878131131296,
+    "improvement_vs_repo_pct": -1.481582776780934,
     "num_outages": 39,
     "avg_router_weights": [
       0.0,
-      0.355,
+      0.354,
       0.095,
       0.054,
-      0.496
+      0.497
     ]
   },
   "overall": {
-    "drift_10s_m": 29.488455959185504,
+    "drift_10s_m": 27.96385139113779,
     "v4d_drift_10s_m": 29.99191273224799,
     "best_repo_m": 29.55,
     "target_2x_m": 14.77,
-    "improvement_vs_repo_pct": 0.208270865700495,
+    "improvement_vs_repo_pct": 5.3676771873509646,
     "total_outages": 65
   }
 }

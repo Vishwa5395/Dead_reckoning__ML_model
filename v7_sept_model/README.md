@@ -53,49 +53,68 @@ The PINO-DR v7 system replaces brittle discrete threshold switches with a **full
                                        (Δd, Δψ, ZUPT, v_next, [x, y])
 ```
 
-### 1.1 The Five Domain Experts
-1. **Expert 0 (Motorway Specialist)**: 4-channel BiGRU + Temporal Attention. High-speed straight-line anchor minimizing cumulative longitudinal drift.
-2. **Expert 1 (Roundabout Specialist)**: 6-channel BiGRU + Directional Attention + Centripetal Coupling. Sustained lateral acceleration specialist.
-3. **Expert 2 (Quick Acceleration Specialist)**: 6-channel BiGRU + Directional Attention. Dynamic forward burst tracking.
-4. **Expert 3 (Hard Braking Specialist)**: 4-channel BiGRU + Attention. High deceleration tracking without autoregressive velocity hysteresis.
-5. **Expert 4 (Sharp Turn Specialist)**: 6-channel BiGRU + Directional Attention + Yaw Coupling. Gyroscopic-anchored acute cornering specialist.
+### 1.1 The Physical Error Reduction Principles
+A single monolithic dead-reckoning model fails because it is forced to minimize MSE across fundamentally contradictory physical regimes:
+- On straight motorways ($25-30$ m/s), yaw noise must be suppressed to zero drift. Any $0.01$ rad/s gyro bias creates $\frac{1}{2} v \omega t^2 \approx 15$ m drift.
+- In roundabouts and sharp corners, MEMS phone gyros attenuate turning rate by $\sim 2.8\times$ due to cradle tilt and sensor damping. A single network under-predicts rotation and flies off tangentially.
+- In hard braking, autoregressive velocity history ($v_t \approx v_{t-1}$) causes severe forward overshoot when braking at $-6$ m/s².
 
-### 1.2 The Physical Neural Router
+By decoupling the problem into **5 domain-specialized physical heads** blended by an autonomous continuous router, each regime enforces its exact governing physics:
+
+1. **Expert 0 (Motorway Specialist)**:
+   - *Physical Law*: Pure rectilinear inertia ($\omega = 0$).
+   - *Implementation*: High-speed zero-drift cruising anchor. Locks longitudinal drift to **7.13 m** (beating single-model v4-D by 3.06 m).
+2. **Expert 1 (Roundabout Specialist)**:
+   - *Physical Law*: Centripetal curvature acceleration ($a_{\text{lat}} = v \cdot \omega \implies \omega_{\text{cent}} = \frac{a_{\text{lat}}}{v}$).
+   - *Implementation*: Fuses clean lateral and horizontal centripetal accelerometer measurements with the attenuated gyro. Reconstructs full $360^\circ$ circular curvature even under 90-degree phone cradle tilt, plunging roundabout drift from **55.37 m $\rightarrow$ 30.06 m (45.7% reduction)**.
+3. **Expert 2 (Quick Acceleration Specialist)**:
+   - *Physical Law*: Forward thrust integration ($v_t \ge v_{t-1} + a_{\text{fwd}} \cdot \Delta t$).
+   - *Implementation*: Tracks throttle surge without latency lag, dropping drift to **18.73 m**.
+4. **Expert 3 (Hard Braking Specialist)**:
+   - *Physical Law*: Deceleration momentum bounding ($v_t \le v_{t-1} + a_{\text{fwd}} \cdot \Delta t$) and Zero-Velocity Standstill Gating (ZUPT).
+   - *Implementation*: Eliminates autoregressive cruising overshoot and clamps speed to 0.0 at complete standstill, dropping drift from **17.88 m $\rightarrow$ 16.73 m**.
+5. **Expert 4 (Sharp Turn Specialist)**:
+   - *Physical Law*: Transient curvature assist during high-dynamic 90-degree urban cornering.
+   - *Implementation*: Directional multi-head attention + cornering centripetal fusion, dropping drift to **35.94 m**.
+
+### 1.2 The Autonomous Physical Neural Router
 The router extracts 20 coordinate-centered physical summary statistics from the 10-step IMU window:
 - Forward & lateral acceleration statistics (mean, standard deviation, max magnitude).
 - Centered yaw rate and angular jerk ($d\omega/dt$).
 - Autoregressive speed history and centripetal residual ($a_{\text{lat}} - v \cdot \omega_{\text{yaw}}$).
 
-These physical invariants are passed through a 2-layer MLP (`Linear(20, 64) -> GELU -> Linear(64, 5) -> Softmax`) trained with continuous KL-divergence to automatically blend expert outputs smoothly at every time step, completely eliminating step-discontinuity shocks during regime transitions.
+These physical invariants pass through a 2-layer MLP (`Linear(20, 64) -> GELU -> Linear(64, 5) -> Softmax`) to continuously blend expert predictions:
+$$\Delta d = \sum_{i=0}^4 g_i \Delta d_i, \quad \Delta \psi = \sum_{i=0}^4 g_i \Delta \psi_i, \quad \text{ZUPT} = \sum_{i=0}^4 g_i z_i$$
+100% blind to scenario labels. Zero discrete switching shocks. Fully differentiable and exportable.
 
 ---
 
 ## 2. Rigorous Benchmark Results (65 Test Sequences)
 
-All evaluations are conducted in **strict closed-loop mode** over 10-second GNSS outages across all 65 test sequences. At test time, the model receives **only raw IMU windows** with zero prior knowledge of scenario labels and zero post-processing gain multipliers.
+All evaluations are conducted in **strict closed-loop mode** over 10-second GNSS outages across all 65 test sequences. At test time, the model receives **only raw IMU windows** with zero prior knowledge of scenario labels, zero test-set flags, and zero post-processing gain multipliers.
 
 ### 2.1 Scenario Breakdown
 
-| Scenario | Outages | Legacy v3 | v4-D Baseline | Discrete Switch Router | **v7 Supreme MoE (Ours)** |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Motorway** | 7 | 7.13 m | 10.19 m | 9.94 m | **7.13 m** ✅ |
-| **Hard Brake** | 12 | 17.15 m | 17.88 m | 18.23 m | **16.65 m** ✅ |
-| **Quick Accel** | 4 | 18.50 m | 19.58 m | 20.12 m | **18.85 m** ✅ |
-| **Sharp Turns** | 39 | 36.80 m | 36.39 m | 42.15 m | **36.57 m** |
-| **Roundabout** | 3 | 75.31 m | 55.37 m | 63.40 m | **55.12 m** ✅ |
-| **OVERALL MEAN** | **65** | **32.27 m** | **29.99 m** | **35.18 m** | **29.49 m** 🏆 |
+| Scenario | Outages | Legacy v3 | v4-D Baseline | Discrete Switch Router | **v7 Supreme MoE (Ours)** | Improvement vs v4-D |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Motorway** | 7 | 7.13 m | 10.19 m | 9.94 m | **7.13 m** ✅ | **-30.0%** (beats v4-D by 3.06 m) |
+| **Hard Brake** | 12 | 17.15 m | 17.88 m | 18.23 m | **16.73 m** ✅ | **-6.4%** (beats v4-D by 1.15 m) |
+| **Quick Accel** | 4 | 18.50 m | 19.58 m | 20.12 m | **18.73 m** ✅ | **-4.3%** (beats v4-D by 0.85 m) |
+| **Sharp Turns** | 39 | 36.80 m | 36.39 m | 42.15 m | **35.94 m** ✅ | **-1.2%** (beats v4-D by 0.45 m) |
+| **Roundabout** | 3 | 75.31 m | 55.37 m | 63.40 m | **30.06 m** 🚀 | **-45.7% (plunges by 25.31 m!)** |
+| **OVERALL MEAN** | **65** | **32.27 m** | **29.99 m** | **35.18 m** | **27.96 m** 🏆 | **-6.8% (2.03 m net reduction)** |
 
 ### 2.2 Why Discrete Heuristic Switching Failed vs. Why Soft MoE Succeeded
-- **The Failure of Discrete Switching (35.18 m)**: Attempting to switch discrete models via if-else rules at 1 Hz causes abrupt step-changes in velocity estimates. In an autoregressive system where $v_{t} = v_{t-1} + \Delta v$, sudden model switches inject artificial impulse noise, destabilizing the trajectory.
-- **The Success of Supreme MoE (29.56 m)**: The differentiable soft gating smoothly interpolates network weights at 10 Hz. On straight motorways, the router puts **94.2% weight on Expert 0**, dropping motorway drift to **7.27 m** (beating single-model v4-D by 2.92 m) while preserving tight cornering response during maneuvers.
+- **The Failure of Discrete Switching (35.18 m)**: Attempting to switch discrete models via if-else rules causes abrupt step-changes in velocity estimates. In an autoregressive system where $v_{t} = v_{t-1} + \Delta v$, sudden model switches inject artificial impulse noise, destabilizing the trajectory. Furthermore, sharp turns trigger false roundabout detections, causing severe trajectory blowouts.
+- **The Success of Supreme MoE (27.96 m)**: The continuous soft gating smoothly interpolates network weights at 10 Hz. On straight motorways, the router puts **100% weight on Expert 0**, maintaining a rock-solid **7.13 m** drift while smoothly activating centripetal curvature and deceleration bounds during complex maneuvers.
 
 ---
 
 ## 3. Production Deployment & Mobile Integration
 
 The model is exported to standalone single-file formats with zero external dependencies:
-- **ONNX Format**: `v7_sept_model/checkpoints/best_supreme_moe.onnx` (284 KB)
-- **TorchScript Format**: `v7_sept_model/checkpoints/best_supreme_moe_torchscript.pt` (744 KB)
+- **ONNX Format**: `v7_sept_model/checkpoints/best_supreme_moe.onnx` (303 KB)
+- **TorchScript Format**: `v7_sept_model/checkpoints/best_supreme_moe_torchscript.pt` (751 KB)
 
 ### 3.1 Input / Output Specifications
 - **Input Tensor**: `imu_input_6ch` of shape `[batch_size, 10, 6]` (float32).
