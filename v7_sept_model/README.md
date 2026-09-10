@@ -9,14 +9,14 @@
 
 | Metric | Production MoE (Autonomous) | Baseline v4-D (Single Model) | Legacy v3 PINO-DR |
 | :--- | :---: | :---: | :---: |
-| **Overall 10s Drift (65 Outages)** | **29.49 m** 🏆 | 29.99 m | 32.27 m |
+| **Overall 10s Drift (65 Outages)** | **27.96 m** 🏆 | 29.99 m | 32.27 m |
 | **Motorway Drift** | **7.13 m** (−30.0%) | 10.19 m | 7.13 m |
-| **Hard Brake Drift** | **16.65 m** (−6.9%) | 17.88 m | 17.15 m |
-| **Quick Accel Drift** | **18.85 m** (−3.7%) | 19.58 m | 18.50 m |
-| **Roundabout Drift** | **55.12 m** (−0.5%) | 55.37 m | 75.31 m |
-| **Sharp Turns Drift** | **36.57 m** | 36.39 m | 36.80 m |
+| **Hard Brake Drift** | **16.73 m** (−6.4%) | 17.88 m | 17.15 m |
+| **Quick Accel Drift** | **18.73 m** (−4.3%) | 19.58 m | 18.50 m |
+| **Roundabout Drift** | **30.06 m** (−45.7%) | 55.37 m | 75.31 m |
+| **Sharp Turns Drift** | **35.94 m** (−1.2%) | 36.39 m | 36.80 m |
 | **Gating Confidence on Highway** | **100.0 % Expert 0** | N/A | N/A |
-| **Standalone ONNX Model Size** | **290 KB** (Self-contained) | 120 KB | 120 KB |
+| **Standalone ONNX Model Size** | **303 KB** (Self-contained) | 120 KB | 120 KB |
 | **Inference Latency (CPU)** | **~1.5 ms / window** | ~0.8 ms | ~0.8 ms |
 | **Deployment Interfaces** | ONNX Runtime & TorchScript | PyTorch | PyTorch |
 
@@ -107,6 +107,30 @@ All evaluations are conducted in **strict closed-loop mode** over 10-second GNSS
 ### 2.2 Why Discrete Heuristic Switching Failed vs. Why Soft MoE Succeeded
 - **The Failure of Discrete Switching (35.18 m)**: Attempting to switch discrete models via if-else rules causes abrupt step-changes in velocity estimates. In an autoregressive system where $v_{t} = v_{t-1} + \Delta v$, sudden model switches inject artificial impulse noise, destabilizing the trajectory. Furthermore, sharp turns trigger false roundabout detections, causing severe trajectory blowouts.
 - **The Success of Supreme MoE (27.96 m)**: The continuous soft gating smoothly interpolates network weights at 10 Hz. On straight motorways, the router puts **100% weight on Expert 0**, maintaining a rock-solid **7.13 m** drift while smoothly activating centripetal curvature and deceleration bounds during complex maneuvers.
+
+### 2.3 Qualitative Closed-Loop Trajectory Comparisons
+
+The figures below demonstrate the 10-second closed-loop dead-reckoning trajectories comparing **PINO-DR v7 (Supreme MoE)** against Ground Truth GPS across representative outages for all 5 driving regimes.
+
+#### 1. Motorway Cruising (7.13 m Drift — Locked Anchor)
+High-speed rectilinear inertia cruising at $> 25\text{ m/s}$ with zero gyro drift leakage.
+![Motorway Trajectory](results/trajectory_supreme_motorway.png)
+
+#### 2. Roundabout Maneuver (30.06 m Drift — −45.7% Error Plunge)
+Centripetal curvature reconstruction recovering true circular geometry under phone cradle 3D tilt.
+![Roundabout Trajectory](results/trajectory_supreme_roundabout.png)
+
+#### 3. Hard Braking Transient (16.73 m Drift — Eliminates Overshoot)
+Deceleration momentum bounding and standstill Zero-Velocity Update (ZUPT) clamping.
+![Hard Brake Trajectory](results/trajectory_supreme_hard_brake.png)
+
+#### 4. Quick Acceleration (18.73 m Drift — Zero Throttle Lag)
+Immediate tracking of forward thrust acceleration without autoregressive velocity lag.
+![Quick Accel Trajectory](results/trajectory_supreme_quick_accel.png)
+
+#### 5. Sharp 90° Turns (35.94 m Drift — Apex Decoupling)
+Directional multi-head attention with cornering apex deceleration and curvature fusion.
+![Sharp Turns Trajectory](results/trajectory_supreme_sharp_turns.png)
 
 ---
 
