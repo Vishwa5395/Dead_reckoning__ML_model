@@ -341,7 +341,22 @@ class PhysicalNeuralRouter(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         feats = self.extract_features(x)
         logits = self.mlp(feats)
-        return torch.softmax(logits, dim=-1)
+
+        # Physics-anchored regime calibration from live sensor deviations
+        afwd_phys = (x[:, :, 0] - self.centers[0]).mean(dim=1, keepdim=True)
+        wyaw_phys = torch.abs(x[:, :, 1] - self.centers[1]).mean(dim=1, keepdim=True)
+        alat_phys = torch.abs(x[:, :, 2] - self.centers[2]).mean(dim=1, keepdim=True)
+        v_last = x[:, -1:, 3]
+
+        bias_0 = torch.clamp((v_last - 0.40) * 5.0, min=0.0, max=1.5) * (alat_phys < 0.05).float()
+        bias_1 = torch.clamp((alat_phys - 0.05) * 15.0, min=0.0, max=1.5)
+        bias_2 = torch.clamp((afwd_phys - 0.02) * 15.0, min=0.0, max=1.5)
+        bias_3 = torch.clamp((-afwd_phys - 0.02) * 15.0, min=0.0, max=1.5)
+        bias_4 = torch.clamp((wyaw_phys - 0.02) * 15.0, min=0.0, max=1.5)
+
+        bias = torch.cat([bias_0, bias_1, bias_2, bias_3, bias_4], dim=-1)
+        calibrated_logits = (logits + bias) / 0.2
+        return torch.softmax(calibrated_logits, dim=-1)
 
 
 # ─── Supreme 5-Expert Mixture-of-Experts ──────────────────────────────────────

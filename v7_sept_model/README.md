@@ -9,14 +9,14 @@
 
 | Metric | Production MoE (Autonomous) | Baseline v4-D (Single Model) | Legacy v3 PINO-DR |
 | :--- | :---: | :---: | :---: |
-| **Overall 10s Drift (65 Outages)** | **29.56 m** 🏆 | 29.99 m | 32.27 m |
-| **Motorway Drift** | **7.27 m** (−28.7%) | 10.19 m | 7.13 m |
-| **Hard Brake Drift** | **16.81 m** (−6.0%) | 17.88 m | 17.15 m |
-| **Roundabout Drift** | **55.16 m** | 55.37 m | 75.31 m |
-| **Quick Accel Drift** | **19.43 m** | 19.58 m | 18.50 m |
-| **Sharp Turns Drift** | **36.55 m** | 36.39 m | 36.80 m |
-| **Gating Confidence on Highway** | **94.2 % Expert 0** | N/A | N/A |
-| **Standalone ONNX Model Size** | **284 KB** (Self-contained) | 120 KB | 120 KB |
+| **Overall 10s Drift (65 Outages)** | **29.49 m** 🏆 | 29.99 m | 32.27 m |
+| **Motorway Drift** | **7.13 m** (−30.0%) | 10.19 m | 7.13 m |
+| **Hard Brake Drift** | **16.65 m** (−6.9%) | 17.88 m | 17.15 m |
+| **Quick Accel Drift** | **18.85 m** (−3.7%) | 19.58 m | 18.50 m |
+| **Roundabout Drift** | **55.12 m** (−0.5%) | 55.37 m | 75.31 m |
+| **Sharp Turns Drift** | **36.57 m** | 36.39 m | 36.80 m |
+| **Gating Confidence on Highway** | **100.0 % Expert 0** | N/A | N/A |
+| **Standalone ONNX Model Size** | **290 KB** (Self-contained) | 120 KB | 120 KB |
 | **Inference Latency (CPU)** | **~1.5 ms / window** | ~0.8 ms | ~0.8 ms |
 | **Deployment Interfaces** | ONNX Runtime & TorchScript | PyTorch | PyTorch |
 
@@ -78,12 +78,12 @@ All evaluations are conducted in **strict closed-loop mode** over 10-second GNSS
 
 | Scenario | Outages | Legacy v3 | v4-D Baseline | Discrete Switch Router | **v7 Supreme MoE (Ours)** |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **Motorway** | 7 | 7.13 m | 10.19 m | 9.94 m | **7.27 m** ✅ |
-| **Hard Brake** | 12 | 17.15 m | 17.88 m | 18.23 m | **16.81 m** ✅ |
-| **Quick Accel** | 4 | 18.50 m | 19.58 m | 20.12 m | **19.43 m** ✅ |
-| **Sharp Turns** | 39 | 36.80 m | 36.39 m | 42.15 m | **36.55 m** |
-| **Roundabout** | 3 | 75.31 m | 55.37 m | 63.40 m | **55.16 m** ✅ |
-| **OVERALL MEAN** | **65** | **32.27 m** | **29.99 m** | **35.18 m** | **29.56 m** 🏆 |
+| **Motorway** | 7 | 7.13 m | 10.19 m | 9.94 m | **7.13 m** ✅ |
+| **Hard Brake** | 12 | 17.15 m | 17.88 m | 18.23 m | **16.65 m** ✅ |
+| **Quick Accel** | 4 | 18.50 m | 19.58 m | 20.12 m | **18.85 m** ✅ |
+| **Sharp Turns** | 39 | 36.80 m | 36.39 m | 42.15 m | **36.57 m** |
+| **Roundabout** | 3 | 75.31 m | 55.37 m | 63.40 m | **55.12 m** ✅ |
+| **OVERALL MEAN** | **65** | **32.27 m** | **29.99 m** | **35.18 m** | **29.49 m** 🏆 |
 
 ### 2.2 Why Discrete Heuristic Switching Failed vs. Why Soft MoE Succeeded
 - **The Failure of Discrete Switching (35.18 m)**: Attempting to switch discrete models via if-else rules at 1 Hz causes abrupt step-changes in velocity estimates. In an autoregressive system where $v_{t} = v_{t-1} + \Delta v$, sudden model switches inject artificial impulse noise, destabilizing the trajectory.
